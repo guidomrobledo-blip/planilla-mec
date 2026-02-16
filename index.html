@@ -1,6 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Planilla MEC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<style>
+/* ===== RESET BÁSICO ===== */
+* {
+  box-sizing: border-box;
+}
+
+/* ===== BODY ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.app {
+  max-width: 480px;              /* ancho real tipo celular */
+  margin: 0 auto;
+  padding: 16px;
+  min-height: 100vh;             /* ocupa toda la pantalla */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;   /* NO centra vertical */
+  background: #ffffff;
+}
+
+/* ===== TÍTULO ===== */
+h2 {
+  text-align: center;
+  margin: 10px 0 20px 0;
+}
+
+/* ===== LABELS ===== */
+label {
+  font-weight: bold;
+  margin-top: 14px;
+  display: block;
+}
+
+/* ===== CAMPOS ===== */
+input, select, button {
+  width: 100%;
+  font-size: 18px;        /* grande para dedo */
+  padding: 14px;
+  margin-top: 6px;
+}
+
+/* ===== BOTÓN ===== */
+button {
+  margin-top: 24px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 20px;
+}
+
+/* ===== MENSAJES ===== */
+#mensaje {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 18px;
+  min-height: 24px;
+}
+
+/* ===== ESPACIO FINAL (evita scroll raro) ===== */
+.espacio-final {
+  height: 40px;
+}
+</style>
+</head>
+
 <body>
-<h1>Prueba GitHub Pages</h1>
+
+<div class="app">
+
+  <h2>Planilla MEC</h2>
+
+  <label>Pickeador</label>
+  <select id="pickeador">
+    <option value="">Seleccionar</option>
+    <option>Juan</option>
+    <option>Ana</option>
+    <option>Carlos</option>
+  </select>
+
+  <label>Fecha</label>
+  <input type="date" id="fecha">
+
+  <label>EAN a reemplazar</label>
+  <input type="text" id="ean_origen">
+
+  <label>Unidades a reemplazar</label>
+  <input type="number" id="uni_origen" min="1">
+
+  <label>EAN de reemplazo</label>
+  <input type="text" id="ean_reemplazo">
+
+  <label>Unidades de reemplazo</label>
+  <input type="number" id="uni_reemplazo" min="1">
+
+  <button>ENVIAR</button>
+
+  <div id="mensaje"></div>
+
+  <div class="espacio-final"></div>
+
+</div>
+
+<script>
+/* Fecha automática */
+document.getElementById("fecha").valueAsDate = new Date();
+</script>
+
 </body>
 </html>
