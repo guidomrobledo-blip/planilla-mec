@@ -6,234 +6,190 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f4f9;
-}
+  body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+  main { padding: 15px; max-width: 500px; margin: auto; }
+  h2 { text-align: center; color: #333; }
+  label { font-weight: bold; display: block; margin-top: 15px; }
+  
+  input, select, button { 
+    width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; 
+    box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; 
+  }
 
-main {
-  padding: 15px;
-  max-width: 500px;
-  margin: auto;
-}
+  button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+  #btnEnviar { background-color: #28a745; margin-top: 25px; font-size: 18px; }
 
-h2 {
-  text-align: center;
-  color: #333;
-}
+  /* VENTANA DEL ESCÁNER */
+  #scanner-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
 
-label {
-  font-weight: bold;
-  display: block;
-  margin-top: 12px;
-}
+  #reader {
+    width: 90%;
+    max-width: 400px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
 
-input, select, button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin-top: 5px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
+  #btn-cerrar {
+    margin-top: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    color: red;
+    font-size: 24px;
+    border: 2px solid red;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-button {
-  margin-top: 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#btnEnviar {
-  background-color: #28a745;
-  margin-top: 25px;
-  font-size: 18px;
-}
-
-#mensaje {
-  text-align: center;
-  font-size: 16px;
-  margin-top: 15px;
-}
-
-/* --- NUEVO DISEÑO ESCÁNER TIPO BANNER --- */
-#scanner-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: auto; /* No ocupa toda la pantalla */
-  background: #000;
-  z-index: 1000;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
-}
-
-#scanner-container {
-  width: 100%;
-  height: 250px; /* Rectángulo apaisado superior */
-  background: #000;
-}
-
-#close-scanner {
-  position: absolute;
-  bottom: 10px;
-  right: 15px;
-  background: white;
-  color: red;
-  font-size: 24px;
-  font-weight: bold;
-  border: 2px solid red;
-  padding: 0px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 1001;
-}
+  #mensaje { text-align: center; margin-top: 15px; font-weight: bold; }
 </style>
 </head>
 
 <body>
 <main>
-<h2>Planilla MEC</h2>
+  <h2>Planilla MEC</h2>
 
-<label>Pickeador</label>
-<select id="pickeador">
-  <option value="">Seleccionar</option>
-  <option>Juan</option>
-  <option>Ana</option>
-  <option>Carlos</option>
-</select>
+  <label>Pickeador</label>
+  <select id="pickeador">
+    <option value="">Seleccionar</option>
+    <option>Juan</option>
+    <option>Ana</option>
+    <option>Carlos</option>
+  </select>
 
-<label>Fecha</label>
-<input type="date" id="fecha">
+  <label>Fecha</label>
+  <input type="date" id="fecha">
 
-<hr style="margin-top:20px">
+  <hr>
 
-<label>EAN a reemplazar (Manual)</label>
-<input type="text" id="ean_origen" inputmode="numeric" pattern="[0-9]*" placeholder="Ingrese EAN manual">
+  <label>EAN a reemplazar (Manual)</label>
+  <input type="text" id="ean_origen" inputmode="numeric" pattern="[0-9]*" placeholder="Ingreso manual">
 
-<label>Unidades a reemplazar</label>
-<input type="number" id="uni_origen" inputmode="numeric" min="1" value="1">
+  <label>Unidades a reemplazar</label>
+  <input type="number" id="uni_origen" inputmode="numeric" min="1" value="1">
 
-<hr style="margin-top:20px">
+  <hr>
 
-<label>EAN de reemplazo</label>
-<input type="text" id="ean_reemplazo" inputmode="numeric" pattern="[0-9]*" placeholder="Escanear o ingresar manual">
-<button type="button" onclick="abrirScanner('ean_reemplazo')">📷 Escanear Reemplazo</button>
+  <label>EAN de reemplazo</label>
+  <input type="text" id="ean_reemplazo" inputmode="numeric" pattern="[0-9]*" placeholder="Escanear o manual">
+  <button type="button" onclick="iniciarEscaneo()">📷 Abrir Cámara</button>
 
-<label>Unidades de reemplazo</label>
-<input type="number" id="uni_reemplazo" inputmode="numeric" min="1" value="1">
+  <label>Unidades de reemplazo</label>
+  <input type="number" id="uni_reemplazo" inputmode="numeric" min="1" value="1">
 
-<button id="btnEnviar" onclick="validar()">✅ GUARDAR DATOS</button>
-
-<p id="mensaje"></p>
+  <button id="btnEnviar" onclick="validar()">✅ GUARDAR DATOS</button>
+  <p id="mensaje"></p>
 </main>
 
-<div id="scanner-overlay">
-  <div id="scanner-container"></div>
-  <button id="close-scanner" onclick="cerrarScanner()">X</button>
+<div id="scanner-modal">
+  <div id="reader"></div>
+  <button id="btn-cerrar" onclick="detenerEscaneo()">X</button>
 </div>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
-document.getElementById("fecha").valueAsDate = new Date();
+  document.getElementById("fecha").valueAsDate = new Date();
+  const URL_APPS_SCRIPT = "TU_URL_AQUI"; // REEMPLAZA ESTO
+  
+  let html5QrCode;
 
-let qrScanner;
-let inputActual;
-
-// --- CONFIGURACIÓN ---
-// RECUERDA: PEGA AQUÍ TU URL DE GOOGLE NUEVAMENTE
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxymyQAzHrmo5axoTOJCBQU-B7BNfQf0HaS4mebm8gJLI6M4nna9hEUaEBPL8x-ogoeUg/exec"; 
-
-function abrirScanner(inputId) {
-  inputActual = document.getElementById(inputId);
-  document.getElementById("scanner-overlay").style.display = "block";
-
-  if (!qrScanner) {
-    qrScanner = new Html5Qrcode("scanner-container");
-  }
-
-  const config = { 
-    fps: 15, 
-    qrbox: { width: 300, height: 120 }, // Rectángulo alargado para EAN
-    aspectRatio: 1.777778 // Formato panorámico
-  };
-
-  qrScanner.start(
-    { facingMode: "environment" },
-    config,
-    qrCodeMessage => {
-      inputActual.value = qrCodeMessage;
-      if (navigator.vibrate) navigator.vibrate(100);
-      cerrarScanner();
+  function iniciarEscaneo() {
+    document.getElementById("scanner-modal").style.display = "flex";
+    
+    // Si ya existe una instancia, la limpiamos
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
     }
-  ).catch(err => {
-    console.error("Error cámara:", err);
-    alert("No se pudo activar la cámara. Asegúrate de dar permisos.");
-    cerrarScanner();
-  });
-}
 
-function cerrarScanner() {
-  if (qrScanner && qrScanner.isScanning) {
-    qrScanner.stop().then(() => {
-      document.getElementById("scanner-overlay").style.display = "none";
+    const config = { 
+        fps: 10, 
+        qrbox: { width: 250, height: 150 },
+        aspectRatio: 1.0 
+    };
+
+    // Esto solicita el permiso explícitamente al iniciar
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        config,
+        (decodedText) => {
+            document.getElementById("ean_reemplazo").value = decodedText;
+            if (navigator.vibrate) navigator.vibrate(100);
+            detenerEscaneo();
+        },
+        (errorMessage) => {
+            // Ignoramos errores de lectura continua para no llenar la consola
+        }
+    ).catch((err) => {
+        alert("Error: No se pudo acceder a la cámara. Revisa los permisos del navegador.");
+        detenerEscaneo();
     });
-  } else {
-    document.getElementById("scanner-overlay").style.display = "none";
-  }
-}
-
-async function validar() {
-  const btn = document.getElementById("btnEnviar");
-  const datos = {
-    pickeador: document.getElementById("pickeador").value,
-    fecha: document.getElementById("fecha").value,
-    ean_origen: document.getElementById("ean_origen").value.trim(),
-    uni_origen: document.getElementById("uni_origen").value,
-    ean_reemplazo: document.getElementById("ean_reemplazo").value.trim(),
-    uni_reemplazo: document.getElementById("uni_reemplazo").value
-  };
-
-  if (!datos.pickeador || !datos.ean_origen || !datos.ean_reemplazo) {
-    mostrar("Faltan datos obligatorios ❌", "red");
-    return;
   }
 
-  btn.disabled = true;
-  mostrar("Enviando... ⏳", "orange");
-
-  try {
-    await fetch(URL_APPS_SCRIPT, {
-      method: "POST",
-      mode: "no-cors", 
-      body: JSON.stringify(datos)
-    });
-
-    mostrar("¡Guardado con éxito! ✅", "green");
-    document.getElementById("ean_origen").value = "";
-    document.getElementById("ean_reemplazo").value = "";
-    document.getElementById("uni_origen").value = "1";
-    document.getElementById("uni_reemplazo").value = "1";
-
-  } catch (err) {
-    mostrar("Error: " + err.message, "red");
-  } finally {
-    btn.disabled = false;
+  function detenerEscaneo() {
+    if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+            document.getElementById("scanner-modal").style.display = "none";
+        }).catch(() => {
+            document.getElementById("scanner-modal").style.display = "none";
+        });
+    } else {
+        document.getElementById("scanner-modal").style.display = "none";
+    }
   }
-}
 
-function mostrar(texto, color) {
-  const msg = document.getElementById("mensaje");
-  msg.innerText = texto;
-  msg.style.color = color;
-  msg.style.fontWeight = "bold";
-}
+  async function validar() {
+    const btn = document.getElementById("btnEnviar");
+    const datos = {
+      pickeador: document.getElementById("pickeador").value,
+      fecha: document.getElementById("fecha").value,
+      ean_origen: document.getElementById("ean_origen").value.trim(),
+      uni_origen: document.getElementById("uni_origen").value,
+      ean_reemplazo: document.getElementById("ean_reemplazo").value.trim(),
+      uni_reemplazo: document.getElementById("uni_reemplazo").value
+    };
+
+    if (!datos.pickeador || !datos.ean_origen || !datos.ean_reemplazo) {
+      mostrar("Faltan datos ❌", "red");
+      return;
+    }
+
+    btn.disabled = true;
+    mostrar("Enviando... ⏳", "orange");
+
+    try {
+      await fetch(URL_APPS_SCRIPT, {
+        method: "POST",
+        mode: "no-cors", 
+        body: JSON.stringify(datos)
+      });
+      mostrar("¡Guardado! ✅", "green");
+      document.getElementById("ean_origen").value = "";
+      document.getElementById("ean_reemplazo").value = "";
+    } catch (err) {
+      mostrar("Error de red ❌", "red");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function mostrar(t, c) {
+    const m = document.getElementById("mensaje");
+    m.innerText = t; m.style.color = c;
+  }
 </script>
 </body>
 </html>
