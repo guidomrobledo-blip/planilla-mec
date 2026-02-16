@@ -19,7 +19,7 @@
   button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
   #btnEnviar { background-color: #28a745; margin-top: 25px; font-size: 18px; }
 
-  /* VENTANA DEL ESCÁNER */
+  /* VENTANA DEL ESCÁNER (MODAL) */
   #scanner-modal {
     display: none;
     position: fixed;
@@ -37,7 +37,6 @@
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    position: relative;
   }
 
   #btn-cerrar {
@@ -102,26 +101,27 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
+  // --- INICIO DE CONFIGURACIÓN ---
+  // PEGA TU URL DE GOOGLE ENTRE LAS COMILLAS:
+  const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxymyQAzHrmo5axoTOJCBQU-B7BNfQf0HaS4mebm8gJLI6M4nna9hEUaEBPL8x-ogoeUg/exec"; 
+  // --- FIN DE CONFIGURACIÓN ---
+
   document.getElementById("fecha").valueAsDate = new Date();
-  const URL_APPS_SCRIPT = "TU_URL_AQUI"; // REEMPLAZA ESTO
-  
   let html5QrCode;
 
   function iniciarEscaneo() {
     document.getElementById("scanner-modal").style.display = "flex";
     
-    // Si ya existe una instancia, la limpiamos
     if (!html5QrCode) {
         html5QrCode = new Html5Qrcode("reader");
     }
 
     const config = { 
         fps: 10, 
-        qrbox: { width: 250, height: 150 },
+        qrbox: { width: 280, height: 150 }, // Formato para código de barras
         aspectRatio: 1.0 
     };
 
-    // Esto solicita el permiso explícitamente al iniciar
     html5QrCode.start(
         { facingMode: "environment" }, 
         config,
@@ -130,11 +130,9 @@
             if (navigator.vibrate) navigator.vibrate(100);
             detenerEscaneo();
         },
-        (errorMessage) => {
-            // Ignoramos errores de lectura continua para no llenar la consola
-        }
+        (errorMessage) => { /* Escaneando... */ }
     ).catch((err) => {
-        alert("Error: No se pudo acceder a la cámara. Revisa los permisos del navegador.");
+        alert("Error: Asegúrate de usar HTTPS y dar permisos de cámara.");
         detenerEscaneo();
     });
   }
@@ -168,7 +166,7 @@
     }
 
     btn.disabled = true;
-    mostrar("Enviando... ⏳", "orange");
+    mostrar("Enviando a Sheet... ⏳", "orange");
 
     try {
       await fetch(URL_APPS_SCRIPT, {
@@ -176,11 +174,17 @@
         mode: "no-cors", 
         body: JSON.stringify(datos)
       });
-      mostrar("¡Guardado! ✅", "green");
+      
+      mostrar("¡Guardado correctamente! ✅", "green");
+      
+      // Limpiar EANs
       document.getElementById("ean_origen").value = "";
       document.getElementById("ean_reemplazo").value = "";
+      document.getElementById("uni_origen").value = "1";
+      document.getElementById("uni_reemplazo").value = "1";
+      
     } catch (err) {
-      mostrar("Error de red ❌", "red");
+      mostrar("Error de conexión ❌", "red");
     } finally {
       btn.disabled = false;
     }
