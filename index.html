@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MEC – Reemplazos</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <style>
 body {
@@ -49,10 +49,6 @@ button {
   cursor: pointer;
 }
 
-button:active {
-  background-color: #0056b3;
-}
-
 #btnEnviar {
   background-color: #28a745;
   margin-top: 25px;
@@ -63,42 +59,39 @@ button:active {
   text-align: center;
   font-size: 16px;
   margin-top: 15px;
-  padding: 10px;
-  border-radius: 5px;
 }
 
-/* Overlay escáner */
+/* --- NUEVO DISEÑO ESCÁNER TIPO BANNER --- */
 #scanner-overlay {
   display: none;
   position: fixed;
   top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
+  width: 100%;
+  height: auto; /* No ocupa toda la pantalla */
+  background: #000;
   z-index: 1000;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
 }
 
 #scanner-container {
-  width: 85%;
-  max-width: 400px;
-  border: 4px solid #fff;
-  border-radius: 12px;
-  overflow: hidden;
+  width: 100%;
+  height: 250px; /* Rectángulo apaisado superior */
+  background: #000;
 }
 
 #close-scanner {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: #ff4d4d;
-  color: white;
-  font-size: 20px;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 50%;
+  bottom: 10px;
+  right: 15px;
+  background: white;
+  color: red;
+  font-size: 24px;
+  font-weight: bold;
+  border: 2px solid red;
+  padding: 0px 12px;
+  border-radius: 8px;
   cursor: pointer;
+  z-index: 1001;
 }
 </style>
 </head>
@@ -120,21 +113,20 @@ button:active {
 
 <hr style="margin-top:20px">
 
-<label>EAN a reemplazar</label>
-<input type="text" id="ean_origen" placeholder="Escanee o escriba EAN">
-<button type="button" onclick="abrirScanner('ean_origen')">📷 Escanear Origen</button>
+<label>EAN a reemplazar (Manual)</label>
+<input type="text" id="ean_origen" inputmode="numeric" pattern="[0-9]*" placeholder="Ingrese EAN manual">
 
 <label>Unidades a reemplazar</label>
-<input type="number" id="uni_origen" min="1" value="1">
+<input type="number" id="uni_origen" inputmode="numeric" min="1" value="1">
 
 <hr style="margin-top:20px">
 
 <label>EAN de reemplazo</label>
-<input type="text" id="ean_reemplazo" placeholder="Escanee o escriba EAN">
+<input type="text" id="ean_reemplazo" inputmode="numeric" pattern="[0-9]*" placeholder="Escanear o ingresar manual">
 <button type="button" onclick="abrirScanner('ean_reemplazo')">📷 Escanear Reemplazo</button>
 
 <label>Unidades de reemplazo</label>
-<input type="number" id="uni_reemplazo" min="1" value="1">
+<input type="number" id="uni_reemplazo" inputmode="numeric" min="1" value="1">
 
 <button id="btnEnviar" onclick="validar()">✅ GUARDAR DATOS</button>
 
@@ -142,58 +134,63 @@ button:active {
 </main>
 
 <div id="scanner-overlay">
-  <button id="close-scanner" onclick="cerrarScanner()">X</button>
   <div id="scanner-container"></div>
+  <button id="close-scanner" onclick="cerrarScanner()">X</button>
 </div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
 
 <script>
-// Poner la fecha de hoy por defecto
 document.getElementById("fecha").valueAsDate = new Date();
 
 let qrScanner;
 let inputActual;
 
 // --- CONFIGURACIÓN ---
-// REEMPLAZA ESTA URL CON LA QUE COPIASTE DE GOOGLE
-const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxymyQAzHrmo5axoTOJCBQU-B7BNfQf0HaS4mebm8gJLI6M4nna9hEUaEBPL8x-ogoeUg/exec"; 
+// RECUERDA: PEGA AQUÍ TU URL DE GOOGLE NUEVAMENTE
+const URL_APPS_SCRIPT = "TU_URL_AQUI"; 
 
 function abrirScanner(inputId) {
   inputActual = document.getElementById(inputId);
-  document.getElementById("scanner-overlay").style.display = "flex";
+  document.getElementById("scanner-overlay").style.display = "block";
 
-  qrScanner = new Html5Qrcode("scanner-container");
+  if (!qrScanner) {
+    qrScanner = new Html5Qrcode("scanner-container");
+  }
+
+  const config = { 
+    fps: 15, 
+    qrbox: { width: 300, height: 120 }, // Rectángulo alargado para EAN
+    aspectRatio: 1.777778 // Formato panorámico
+  };
+
   qrScanner.start(
     { facingMode: "environment" },
-    { fps: 10, qrbox: { width: 250, height: 150 } },
+    config,
     qrCodeMessage => {
       inputActual.value = qrCodeMessage;
-      // Vibración de éxito (100 milisegundos)
       if (navigator.vibrate) navigator.vibrate(100);
       cerrarScanner();
     }
   ).catch(err => {
-    alert("Error al iniciar cámara: " + err);
+    console.error("Error cámara:", err);
+    alert("No se pudo activar la cámara. Asegúrate de dar permisos.");
     cerrarScanner();
   });
 }
 
 function cerrarScanner() {
-  if (qrScanner) {
+  if (qrScanner && qrScanner.isScanning) {
     qrScanner.stop().then(() => {
-      qrScanner.clear();
-      qrScanner = null;
-    }).catch(err => console.error(err));
+      document.getElementById("scanner-overlay").style.display = "none";
+    });
+  } else {
+    document.getElementById("scanner-overlay").style.display = "none";
   }
-  document.getElementById("scanner-overlay").style.display = "none";
 }
 
 async function validar() {
   const btn = document.getElementById("btnEnviar");
-  const msg = document.getElementById("mensaje");
-  
-  // Captura de datos
   const datos = {
     pickeador: document.getElementById("pickeador").value,
     fecha: document.getElementById("fecha").value,
@@ -203,17 +200,15 @@ async function validar() {
     uni_reemplazo: document.getElementById("uni_reemplazo").value
   };
 
-  // Validación simple
   if (!datos.pickeador || !datos.ean_origen || !datos.ean_reemplazo) {
     mostrar("Faltan datos obligatorios ❌", "red");
     return;
   }
 
   btn.disabled = true;
-  mostrar("Enviando a la planilla... ⏳", "orange");
+  mostrar("Enviando... ⏳", "orange");
 
   try {
-    // Envío de datos a Google Sheets
     await fetch(URL_APPS_SCRIPT, {
       method: "POST",
       mode: "no-cors", 
@@ -221,15 +216,13 @@ async function validar() {
     });
 
     mostrar("¡Guardado con éxito! ✅", "green");
-    
-    // Limpiar campos para el siguiente pedido
     document.getElementById("ean_origen").value = "";
     document.getElementById("ean_reemplazo").value = "";
     document.getElementById("uni_origen").value = "1";
     document.getElementById("uni_reemplazo").value = "1";
 
   } catch (err) {
-    mostrar("Error de conexión: " + err.message, "red");
+    mostrar("Error: " + err.message, "red");
   } finally {
     btn.disabled = false;
   }
