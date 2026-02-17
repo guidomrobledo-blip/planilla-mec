@@ -14,8 +14,12 @@
   button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
   .btn-scan { background-color: #6c757d; margin-bottom: 5px; }
   #btnEnviar { background-color: #28a745; margin-top: 25px; font-size: 18px; }
-  #menu-btn { background: none; border: none; font-size: 24px; width: auto; padding: 0; }
+  
+  /* MENU DESPLEGABLE */
+  #menu-btn { background: none; border: none; font-size: 24px; width: auto; padding: 0; color: white; }
   #menu-content { display: none; position: absolute; right: 15px; top: 50px; background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1500; }
+  
+  /* MODALES Y AVISOS */
   #scanner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
   #reader { width: 90%; max-width: 400px; background: white; border-radius: 8px; overflow: hidden; }
   #btn-cerrar { margin-top: 20px; width: 60px; height: 60px; border-radius: 50%; background: white; color: red; font-size: 24px; border: 2px solid red; display: flex; justify-content: center; align-items: center; }
@@ -29,7 +33,7 @@
   <span>MEC Reemplazos</span>
   <button id="menu-btn" onclick="toggleMenu()">☰</button>
   <div id="menu-content">
-    <label style="margin:0; color: black;">Nro Fila a Corregir:</label>
+    <label style="margin:0; color: #333;">Nro Fila a Corregir:</label>
     <input type="number" id="input_fila" placeholder="Ej: 5">
     <button onclick="cargarFila()" style="background:#6c757d; margin-top:10px">Cargar Datos</button>
   </div>
@@ -44,36 +48,53 @@
 <main>
   <h2 id="titulo-modo">Nueva Carga</h2>
   <label>Pickeador</label>
-  <select id="pickeador"><option value="">Seleccionar</option><option>Juan</option><option>Ana</option><option>Carlos</option></select>
+  <select id="pickeador">
+    <option value="">Seleccionar</option>
+    <option>Juan</option>
+    <option>Ana</option>
+    <option>Carlos</option>
+  </select>
+
   <label>Nro Pedido</label>
   <input type="text" id="nro_pedido" placeholder="Escanear o manual">
   <button type="button" class="btn-scan" onclick="iniciarEscaneo('nro_pedido')">📷 Escanear Pedido</button>
+
   <label>Fecha</label>
   <input type="date" id="fecha">
+
   <hr>
+
   <label>EAN a reemplazar</label>
   <input type="text" id="ean_origen" placeholder="Manual">
+
   <label>Unidades</label>
   <input type="number" id="uni_origen" value="1">
+
   <hr>
+
   <label>EAN de reemplazo</label>
   <input type="text" id="ean_reemplazo" placeholder="Escanear o manual">
   <button type="button" class="btn-scan" onclick="iniciarEscaneo('ean_reemplazo')">📷 Escanear Reemplazo</button>
+
   <label>Unidades</label>
   <input type="number" id="uni_reemplazo" value="1">
   
   <button id="btnEnviar" onclick="validar()">✅ GUARDAR DATOS</button>
-  <button id="btnCancelar" onclick="cancelarEdicion()" style="display:none; background:red; margin-top:10px">❌ CANCELAR EDICIÓN</button>
+  <button id="btnCancelar" onclick="cancelarEdicion()" style="display:none; background:#dc3545; margin-top:10px">❌ CANCELAR EDICIÓN</button>
   <p id="mensaje"></p>
 </main>
 
-<div id="scanner-modal"><div id="reader"></div><button id="btn-cerrar" onclick="detenerEscaneo()">X</button></div>
+<div id="scanner-modal">
+  <div id="reader"></div>
+  <button id="btn-cerrar" onclick="detenerEscaneo()">X</button>
+</div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
-  // PEGA TU URL AQUÍ
+  // --- CONFIGURACIÓN ---
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxymyQAzHrmo5axoTOJCBQU-B7BNfQf0HaS4mebm8gJLI6M4nna9hEUaEBPL8x-ogoeUg/exec"; 
-  
+  // --- FIN CONFIGURACIÓN ---
+
   let html5QrCode, campoDestino, modoEdicion = false, filaEdicion = null;
   document.getElementById("fecha").valueAsDate = new Date();
 
@@ -89,23 +110,16 @@
     toggleMenu();
     
     try {
-      // Para LEER datos NO podemos usar no-cors, usamos un proxy o simplemente manejamos la redirección
-      const resp = await fetch(URL_APPS_SCRIPT + "?nro_fila=" + nro); // Cambio a GET para lectura simple si es necesario, pero intentemos POST corregido
+      // Petición GET para lectura (evita bloqueos CORS)
+      const resp = await fetch(URL_APPS_SCRIPT + "?nro_fila=" + nro);
+      const d = await resp.json();
       
-      // Como Apps Script es complejo con CORS, la forma más fiable de LEER es enviar la petición
-      // y procesar el JSON. Si falla el fetch directo, avisamos.
-      const response = await fetch(URL_APPS_SCRIPT, {
-        method: "POST",
-        body: JSON.stringify({ accion: "leer", nro_fila: nro })
-      });
-      
-      const d = await response.json();
-      
-      if(d.status === "error") {
-        mostrar("No se encontró la fila", "red");
+      if(d.status === "error" || !d.pickeador) {
+        mostrar("Fila vacía o inexistente ❌", "red");
         return;
       }
 
+      // Rellenar campos con los datos traídos
       document.getElementById("pickeador").value = d.pickeador;
       document.getElementById("nro_pedido").value = d.nro_pedido;
       document.getElementById("fecha").value = d.fecha;
@@ -114,31 +128,37 @@
       document.getElementById("ean_reemplazo").value = d.ean_reemplazo;
       document.getElementById("uni_reemplazo").value = d.uni_reemplazo;
       
-      modoEdicion = true; filaEdicion = nro;
+      // Activar modo edición
+      modoEdicion = true; 
+      filaEdicion = nro;
       document.getElementById("titulo-modo").innerText = "Corrigiendo Fila " + nro;
       document.getElementById("btnEnviar").innerText = "🔄 ACTUALIZAR FILA " + nro;
       document.getElementById("btnEnviar").style.background = "#fd7e14";
       document.getElementById("btnCancelar").style.display = "block";
-      mostrar("Datos cargados correctamente ✅", "blue");
+      mostrar("Datos cargados ✅", "blue");
     } catch (e) { 
-      mostrar("Error al obtener datos. Verifica que la fila exista.", "red"); 
-      console.log(e);
+      mostrar("Error de conexión al leer planilla ❌", "red"); 
+      console.error(e);
     }
   }
 
   function cancelarEdicion() {
-    modoEdicion = false; filaEdicion = null;
+    modoEdicion = false; 
+    filaEdicion = null;
     document.getElementById("titulo-modo").innerText = "Nueva Carga";
     document.getElementById("btnEnviar").innerText = "✅ GUARDAR DATOS";
     document.getElementById("btnEnviar").style.background = "#28a745";
     document.getElementById("btnCancelar").style.display = "none";
     document.getElementById("ean_origen").value = "";
     document.getElementById("ean_reemplazo").value = "";
+    document.getElementById("uni_origen").value = "1";
+    document.getElementById("uni_reemplazo").value = "1";
     mostrar("Edición cancelada", "black");
   }
 
   function iniciarEscaneo(id) {
-    campoDestino = id; document.getElementById("scanner-modal").style.display = "flex";
+    campoDestino = id; 
+    document.getElementById("scanner-modal").style.display = "flex";
     if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 280, height: 150 }, aspectRatio: 1.0 },
       (text) => { document.getElementById(campoDestino).value = text.trim(); if (navigator.vibrate) navigator.vibrate(100); detenerEscaneo(); },
@@ -176,19 +196,20 @@
     }
 
     btn.disabled = true;
-    mostrar("Enviando... ⏳", "orange");
+    mostrar("Enviando datos... ⏳", "orange");
 
     try {
-      // Para ENVIAR datos (POST) el mode: no-cors es aceptable si no necesitamos leer la respuesta
       await fetch(URL_APPS_SCRIPT, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
       
-      mostrar(modoEdicion ? "¡Fila " + filaEdicion + " actualizada! ✅" : "¡Guardado correctamente! ✅", "green");
+      mostrar(modoEdicion ? "¡Fila " + filaEdicion + " actualizada! ✅" : "¡Guardado con éxito! ✅", "green");
       
       if (modoEdicion) {
         cancelarEdicion();
       } else {
         document.getElementById("ean_origen").value = "";
         document.getElementById("ean_reemplazo").value = "";
+        document.getElementById("uni_origen").value = "1";
+        document.getElementById("uni_reemplazo").value = "1";
       }
     } catch (err) { 
       mostrar("Error de conexión ❌", "red"); 
