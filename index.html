@@ -4,236 +4,177 @@
 <meta charset="UTF-8">
 <title>MEC – Reemplazos</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <style>
   body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+  header { background: #333; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
   main { padding: 15px; max-width: 500px; margin: auto; }
-  h2 { text-align: center; color: #333; }
+  h2 { text-align: center; color: #333; margin: 10px 0; }
   label { font-weight: bold; display: block; margin-top: 15px; }
-  
-  input, select, button { 
-    width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; 
-    box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; 
-  }
-
+  input, select, button { width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
   button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
   .btn-scan { background-color: #6c757d; margin-bottom: 5px; }
   #btnEnviar { background-color: #28a745; margin-top: 25px; font-size: 18px; }
-
-  /* MODAL DEL ESCÁNER */
-  #scanner-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 1000;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #reader {
-    width: 90%;
-    max-width: 400px;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  #btn-cerrar {
-    margin-top: 20px;
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: white; color: red;
-    font-size: 24px; border: 2px solid red;
-    display: flex; justify-content: center; align-items: center;
-  }
-
+  
+  /* MENU DESPLEGABLE */
+  #menu-btn { background: none; border: none; font-size: 24px; width: auto; padding: 0; }
+  #menu-content { display: none; position: absolute; right: 15px; top: 50px; background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1500; }
+  
+  /* MODALES Y AVISOS */
+  #scanner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
+  #reader { width: 90%; max-width: 400px; background: white; border-radius: 8px; overflow: hidden; }
+  #btn-cerrar { margin-top: 20px; width: 60px; height: 60px; border-radius: 50%; background: white; color: red; font-size: 24px; border: 2px solid red; display: flex; justify-content: center; align-items: center; }
+  #aviso-error { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; border: 3px solid red; padding: 20px; border-radius: 12px; z-index: 2000; width: 80%; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
   #mensaje { text-align: center; margin-top: 15px; font-weight: bold; }
-
-  /* --- AVISO VISUAL DE ERROR (CENTRO DE PANTALLA) --- */
-  #aviso-error {
-    display: none;
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    border: 4px solid red;
-    padding: 25px;
-    border-radius: 15px;
-    z-index: 2000;
-    width: 85%;
-    max-width: 380px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  }
 </style>
 </head>
-
 <body>
 
+<header>
+  <span>MEC Reemplazos</span>
+  <button id="menu-btn" onclick="toggleMenu()">☰</button>
+  <div id="menu-content">
+    <label style="margin:0">Nro Fila a Corregir:</label>
+    <input type="number" id="input_fila" placeholder="Ej: 5">
+    <button onclick="cargarFila()" style="background:#6c757d; margin-top:10px">Cargar Datos</button>
+  </div>
+</header>
+
 <div id="aviso-error">
-  <p style="color: red; font-weight: bold; font-size: 20px; margin-top: 0;">⚠️ ERROR</p>
-  <p id="error-texto" style="font-size: 18px; color: #333; line-height: 1.4;">Los EAN no pueden ser iguales, por favor corregir</p>
-  <button onclick="cerrarAviso()" style="background-color: #d9534f; margin-top: 15px;">Entendido</button>
+  <p style="color: red; font-weight: bold; font-size: 18px;">⚠️ ATENCIÓN</p>
+  <p>Los EAN no pueden ser iguales, por favor corregir</p>
+  <button onclick="cerrarAviso()" style="background-color: #6c757d;">Cerrar</button>
 </div>
 
 <main>
-  <h2>Planilla MEC</h2>
-
+  <h2 id="titulo-modo">Nueva Carga</h2>
   <label>Pickeador</label>
-  <select id="pickeador">
-    <option value="">Seleccionar</option>
-    <option>Juan</option>
-    <option>Ana</option>
-    <option>Carlos</option>
-  </select>
-
+  <select id="pickeador"><option value="">Seleccionar</option><option>Juan</option><option>Ana</option><option>Carlos</option></select>
   <label>Nro Pedido</label>
-  <input type="text" id="nro_pedido" inputmode="numeric" pattern="[0-9]*" placeholder="Escanear o manual">
+  <input type="text" id="nro_pedido" placeholder="Escanear o manual">
   <button type="button" class="btn-scan" onclick="iniciarEscaneo('nro_pedido')">📷 Escanear Pedido</button>
-
   <label>Fecha</label>
   <input type="date" id="fecha">
-
   <hr>
-
-  <label>EAN a reemplazar (Manual)</label>
-  <input type="text" id="ean_origen" inputmode="numeric" pattern="[0-9]*" placeholder="Ingreso manual">
-
-  <label>Unidades a reemplazar</label>
-  <input type="number" id="uni_origen" inputmode="numeric" min="1" value="1">
-
+  <label>EAN a reemplazar</label>
+  <input type="text" id="ean_origen" placeholder="Manual">
+  <label>Unidades</label>
+  <input type="number" id="uni_origen" value="1">
   <hr>
-
   <label>EAN de reemplazo</label>
-  <input type="text" id="ean_reemplazo" inputmode="numeric" pattern="[0-9]*" placeholder="Escanear o manual">
+  <input type="text" id="ean_reemplazo" placeholder="Escanear o manual">
   <button type="button" class="btn-scan" onclick="iniciarEscaneo('ean_reemplazo')">📷 Escanear Reemplazo</button>
-
-  <label>Unidades de reemplazo</label>
-  <input type="number" id="uni_reemplazo" inputmode="numeric" min="1" value="1">
-
+  <label>Unidades</label>
+  <input type="number" id="uni_reemplazo" value="1">
+  
   <button id="btnEnviar" onclick="validar()">✅ GUARDAR DATOS</button>
+  <button id="btnCancelar" onclick="cancelarEdicion()" style="display:none; background:red; margin-top:10px">❌ CANCELAR EDICIÓN</button>
   <p id="mensaje"></p>
 </main>
 
-<div id="scanner-modal">
-  <div id="reader"></div>
-  <button id="btn-cerrar" onclick="detenerEscaneo()">X</button>
-</div>
+<div id="scanner-modal"><div id="reader"></div><button id="btn-cerrar" onclick="detenerEscaneo()">X</button></div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
-
 <script>
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxymyQAzHrmo5axoTOJCBQU-B7BNfQf0HaS4mebm8gJLI6M4nna9hEUaEBPL8x-ogoeUg/exec"; 
-
+  let html5QrCode, campoDestino, modoEdicion = false, filaEdicion = null;
   document.getElementById("fecha").valueAsDate = new Date();
-  let html5QrCode;
-  let campoDestino = ""; 
 
-  function iniciarEscaneo(idCampo) {
-    campoDestino = document.getElementById(idCampo);
-    document.getElementById("scanner-modal").style.display = "flex";
-    
-    if (!html5QrCode) {
-        html5QrCode = new Html5Qrcode("reader");
-    }
+  function toggleMenu() {
+    const m = document.getElementById("menu-content");
+    m.style.display = m.style.display === "block" ? "none" : "block";
+  }
 
-    const config = { fps: 10, qrbox: { width: 280, height: 150 }, aspectRatio: 1.0 };
+  async function cargarFila() {
+    const nro = document.getElementById("input_fila").value;
+    if(!nro) return;
+    mostrar("Buscando... ⏳", "orange");
+    toggleMenu();
+    try {
+      const resp = await fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify({ accion: "leer", nro_fila: nro }) });
+      const d = await resp.json();
+      document.getElementById("pickeador").value = d.pickeador;
+      document.getElementById("nro_pedido").value = d.nro_pedido;
+      document.getElementById("fecha").value = d.fecha;
+      document.getElementById("ean_origen").value = d.ean_origen;
+      document.getElementById("uni_origen").value = d.uni_origen;
+      document.getElementById("ean_reemplazo").value = d.ean_reemplazo;
+      document.getElementById("uni_reemplazo").value = d.uni_reemplazo;
+      
+      modoEdicion = true; filaEdicion = nro;
+      document.getElementById("titulo-modo").innerText = "Corrigiendo Fila " + nro;
+      document.getElementById("btnEnviar").innerText = "🔄 ACTUALIZAR FILA " + nro;
+      document.getElementById("btnEnviar").style.background = "#fd7e14";
+      document.getElementById("btnCancelar").style.display = "block";
+      mostrar("Datos cargados", "blue");
+    } catch (e) { mostrar("No se encontró la fila", "red"); }
+  }
 
-    html5QrCode.start(
-        { facingMode: "environment" }, 
-        config,
-        (decodedText) => {
-            campoDestino.value = decodedText.trim();
-            if (navigator.vibrate) navigator.vibrate(100);
-            detenerEscaneo();
-        },
-        (errorMessage) => { }
-    ).catch((err) => {
-        alert("Error de cámara.");
-        detenerEscaneo();
-    });
+  function cancelarEdicion() {
+    modoEdicion = false; filaEdicion = null;
+    document.getElementById("titulo-modo").innerText = "Nueva Carga";
+    document.getElementById("btnEnviar").innerText = "✅ GUARDAR DATOS";
+    document.getElementById("btnEnviar").style.background = "#28a745";
+    document.getElementById("btnCancelar").style.display = "none";
+    document.getElementById("ean_origen").value = "";
+    document.getElementById("ean_reemplazo").value = "";
+    mostrar("Edición cancelada", "black");
+  }
+
+  // --- Lógica de Escáner y Validación (lo que ya funcionaba) ---
+  function iniciarEscaneo(id) {
+    campoDestino = id; document.getElementById("scanner-modal").style.display = "flex";
+    if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 280, height: 150 }, aspectRatio: 1.0 },
+      (text) => { document.getElementById(campoDestino).value = text.trim(); if (navigator.vibrate) navigator.vibrate(100); detenerEscaneo(); },
+      () => {}
+    ).catch(() => { alert("Error de cámara"); detenerEscaneo(); });
   }
 
   function detenerEscaneo() {
     if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-            document.getElementById("scanner-modal").style.display = "none";
-        }).catch(() => {
-            document.getElementById("scanner-modal").style.display = "none";
-        });
-    } else {
-        document.getElementById("scanner-modal").style.display = "none";
-    }
+      html5QrCode.stop().then(() => { document.getElementById("scanner-modal").style.display = "none"; });
+    } else { document.getElementById("scanner-modal").style.display = "none"; }
   }
 
-  function mostrarAviso() {
-    document.getElementById("aviso-error").style.display = "block";
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-  }
-
-  function cerrarAviso() {
-    document.getElementById("aviso-error").style.display = "none";
-  }
+  function cerrarAviso() { document.getElementById("aviso-error").style.display = "none"; }
 
   async function validar() {
     const btn = document.getElementById("btnEnviar");
-    
-    // Captura y limpieza de valores para comparación exacta
-    const eanO = document.getElementById("ean_origen").value.trim();
-    const eanR = document.getElementById("ean_reemplazo").value.trim();
-
     const datos = {
+      accion: modoEdicion ? "actualizar" : "insertar",
+      nro_fila: filaEdicion,
       pickeador: document.getElementById("pickeador").value,
       nro_pedido: document.getElementById("nro_pedido").value.trim(),
       fecha: document.getElementById("fecha").value,
-      ean_origen: eanO,
+      ean_origen: document.getElementById("ean_origen").value.trim(),
       uni_origen: document.getElementById("uni_origen").value,
-      ean_reemplazo: eanR,
+      ean_reemplazo: document.getElementById("ean_reemplazo").value.trim(),
       uni_reemplazo: document.getElementById("uni_reemplazo").value
     };
 
-    // Validación de campos vacíos
-    if (!datos.pickeador || !datos.nro_pedido || !eanO || !eanR) {
-      mostrar("Faltan datos ❌", "red");
-      return;
+    if (!datos.pickeador || !datos.nro_pedido || !datos.ean_origen || !datos.ean_reemplazo) {
+      mostrar("Faltan datos ❌", "red"); return;
     }
-
-    // --- CONTROL DE DUPLICADOS (EAN ORIGEN VS REEMPLAZO) ---
-    if (eanO === eanR) {
-      mostrarAviso(); // Muestra el cartel central
-      return; // Detiene la ejecución, no guarda nada
+    if (datos.ean_origen === datos.ean_reemplazo) {
+      document.getElementById("aviso-error").style.display = "block"; return;
     }
 
     btn.disabled = true;
-    mostrar("Guardando... ⏳", "orange");
+    mostrar("Procesando... ⏳", "orange");
 
     try {
-      await fetch(URL_APPS_SCRIPT, {
-        method: "POST",
-        mode: "no-cors", 
-        body: JSON.stringify(datos)
-      });
-      
-      mostrar("¡Guardado! ✅", "green");
-      
-      document.getElementById("ean_origen").value = "";
-      document.getElementById("ean_reemplazo").value = "";
-      document.getElementById("uni_origen").value = "1";
-      document.getElementById("uni_reemplazo").value = "1";
-      
-    } catch (err) {
-      mostrar("Error de conexión ❌", "red");
-    } finally {
-      btn.disabled = false;
-    }
+      await fetch(URL_APPS_SCRIPT, { method: "POST", mode: "no-cors", body: JSON.stringify(datos) });
+      mostrar(modoEdicion ? "¡Actualizado! ✅" : "¡Guardado! ✅", "green");
+      if (modoEdicion) cancelarEdicion();
+      else {
+        document.getElementById("ean_origen").value = "";
+        document.getElementById("ean_reemplazo").value = "";
+      }
+    } catch (err) { mostrar("Error de conexión ❌", "red"); }
+    finally { btn.disabled = false; }
   }
 
-  function mostrar(t, c) {
-    const m = document.getElementById("mensaje");
-    m.innerText = t; m.style.color = c;
-  }
+  function mostrar(t, c) { const m = document.getElementById("mensaje"); m.innerText = t; m.style.color = c; }
 </script>
 </body>
 </html>
