@@ -50,10 +50,34 @@
   }
 
   #mensaje { text-align: center; margin-top: 15px; font-weight: bold; }
+
+  /* --- AVISO VISUAL DE ERROR --- */
+  #aviso-error {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border: 3px solid red;
+    padding: 20px;
+    border-radius: 12px;
+    z-index: 2000;
+    width: 80%;
+    max-width: 350px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
 </style>
 </head>
 
 <body>
+
+<div id="aviso-error">
+  <p style="color: red; font-weight: bold; font-size: 18px;">⚠️ ATENCIÓN</p>
+  <p id="error-texto">Los EAN no pueden ser iguales, por favor corregir</p>
+  <button onclick="cerrarAviso()" style="background-color: #6c757d;">Cerrar</button>
+</div>
+
 <main>
   <h2>Planilla MEC</h2>
 
@@ -107,7 +131,7 @@
 
   document.getElementById("fecha").valueAsDate = new Date();
   let html5QrCode;
-  let campoDestino = ""; // Para saber si guardar en 'nro_pedido' o 'ean_reemplazo'
+  let campoDestino = ""; 
 
   function iniciarEscaneo(idCampo) {
     campoDestino = idCampo;
@@ -146,6 +170,15 @@
     }
   }
 
+  function mostrarAviso() {
+    document.getElementById("aviso-error").style.display = "block";
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  }
+
+  function cerrarAviso() {
+    document.getElementById("aviso-error").style.display = "none";
+  }
+
   async function validar() {
     const btn = document.getElementById("btnEnviar");
     const datos = {
@@ -163,6 +196,12 @@
       return;
     }
 
+    // --- NUEVA VALIDACIÓN: EAN IGUALES ---
+    if (datos.ean_origen === datos.ean_reemplazo) {
+      mostrarAviso();
+      return;
+    }
+
     btn.disabled = true;
     mostrar("Guardando... ⏳", "orange");
 
@@ -175,7 +214,6 @@
       
       mostrar("¡Guardado! ✅", "green");
       
-      // Limpiamos campos menos el pickeador y el nro_pedido (por si hay varios reemplazos en un mismo pedido)
       document.getElementById("ean_origen").value = "";
       document.getElementById("ean_reemplazo").value = "";
       document.getElementById("uni_origen").value = "1";
