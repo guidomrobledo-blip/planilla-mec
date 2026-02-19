@@ -45,26 +45,20 @@ header span {
 }
 
   header span { font-weight: bold; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-
-#menu-btn { 
-    background: transparent !important; 
-    border: none !important; 
-    font-size: 30px !important; 
-    color: #ffffff !important; 
+ #menu-btn { 
+    background: none; 
+    border: none; 
+    font-size: 30px; 
+    color: white; 
     cursor: pointer; 
-    
-    /* POSICIÓN FIJA A LA IZQUIERDA */
-    position: absolute !important; 
-    left: 30px !important;   /* Se pega al borde izquierdo */
-    top: 50% !important;     /* Baja al centro */
-    transform: translateY(-50%) !important; /* Centrado vertical exacto */
-    
-    margin: 0 !important;
-    padding: 0 !important;
-    line-height: 1 !important;
-    z-index: 1100 !important;
-  }
-  #menu-content { 
+    position: absolute; 
+    right: 15px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    display: flex;
+    align-items: center;
+   }
+#menu-content { 
     display: none; 
     position: absolute; 
     right: 10px; 
@@ -160,14 +154,12 @@ header span {
 <body>
 
 <header>
+  <span>MEC REEMPLAZOS</span>
   <button id="menu-btn" onclick="toggleMenu()">☰</button>
-  
-  <span>REEMPLAZOS MEC</span>
-
   <div id="menu-content">
     <label style="margin:0; color: #333; font-size: 14px;">Fila a Corregir:</label>
     <input type="number" id="input_fila" inputmode="numeric" placeholder="Ej: 5">
-    <button onclick="cargarFila()" style="background:var(--azul-corporativo); margin-top:10px; color: #ffffff;">Cargar</button>
+    <button onclick="cargarFila()" style="background:var(--azul-corporativo); margin-top:10px">Cargar</button>
   </div>
 </header>
 <div id="aviso-error">
