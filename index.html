@@ -15,18 +15,16 @@
 
   body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: var(--gris-fondo); color: #333; }
   
-  header { 
+ header { 
     background: var(--azul-corporativo); 
     color: white; 
     padding: 15px; 
-    display: flex;             /* Usamos flex para control total */
-    justify-content: center;   /* Centra el título horizontalmente */
-    align-items: center;       /* Centra el contenido verticalmente */
+    display: flex; 
+    justify-content: space-between; /* Esto separa el botón del título */
+    align-items: center;
     position: sticky; 
     top: 0; 
     z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: relative;        /* IMPORTANTE: El ancla para el botón */
   }
 
   header span { font-weight: bold; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
@@ -38,14 +36,11 @@
     color: #ffffff !important;
     cursor: pointer !important;
     
-    /* POSICIONAMIENTO ABSOLUTO FORZADO */
-    position: absolute !important;
-    right: 15px !important;     /* Distancia al borde derecho */
-    left: auto !important;      /* Anula el centrado del título */
-    top: 50% !important;        /* Baja al centro */
-    transform: translateY(-50%) !important; /* Ajuste fino de centrado vertical */
+    /* POSICIONAMIENTO NATURAL A LA IZQUIERDA */
+    position: relative !important;
+    float: left; /* Lo empuja a la izquierda */
     
-    /* LIMPIEZA DE ESTILOS */
+    /* AJUSTES DE ESPACIADO */
     margin: 0 !important;
     padding: 0 !important;
     line-height: 1 !important;
