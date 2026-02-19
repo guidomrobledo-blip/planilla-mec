@@ -19,38 +19,32 @@
     background: var(--azul-corporativo); 
     color: white; 
     padding: 15px; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
+    text-align: center; 
+    position: relative; /* Esta es la ancla para el botón */
     position: sticky; 
     top: 0; 
     z-index: 1000;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: relative !important; 
-    display: block !important; /* Cambiamos flex por block para liberar al botón */
-    text-align: center; /* Esto mantendrá el título centrado */
+    min-height: 30px; /* Asegura espacio para el botón */
+    display: block !important;
   }
 
   header span { font-weight: bold; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
 
-  /* CORRECCIÓN MENÚ: Ubicación esquina superior derecha real */
- #menu-btn { 
+  #menu-btn { 
     background: none !important; 
     border: none !important; 
     font-size: 30px !important; 
-    color: #ffffff !important; 
+    color: #ffffff !important; /* Blanco puro */
     cursor: pointer; 
     position: absolute !important; 
-    
-    /* TRUCO MAESTRO: */
-    left: auto !important;   /* Anulamos cualquier empuje desde la izquierda */
-    right: 20px !important;  /* Lo obligamos a pegarse a la derecha */
-    
+    right: 15px !important;    /* 15px desde el borde derecho */
     top: 50% !important; 
-    transform: translateY(-50%) !important; 
-    display: flex !important;
-    align-items: center !important;
-}
+    transform: translateY(-50%) !important; /* Centrado vertical perfecto */
+    line-height: 1;
+    outline: none !important;
+    padding: 0;
+  }
 
   #menu-content { 
     display: none; 
